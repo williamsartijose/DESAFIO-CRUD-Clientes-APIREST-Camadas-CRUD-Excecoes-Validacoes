@@ -5,11 +5,14 @@ import com.apicliente.entities.Client;
 import com.apicliente.repositories.ClientRepository;
 import com.apicliente.services.execptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
+import org.hibernate.exception.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -35,16 +38,8 @@ public class ClientService {
     public ClientDTO insert(ClientDTO dto) {
         Client entity = new Client();
         copyDtoToEntity(dto, entity);
-        return  new ClientDTO(entity);
-    }
-
-    private void copyDtoToEntity(ClientDTO dto, Client entity) {
-        entity.setName(dto.getName());
-        entity.setCpf(dto.getCpf());
-        entity.setIncome(dto.getIncome());
-        entity.setBirthDate(dto.getBirthDate());
-        entity.setChildren(dto.getChildren());
-
+        entity = repository.save(entity);
+        return new ClientDTO(entity);
     }
 
     @Transactional
@@ -59,4 +54,23 @@ public class ClientService {
             throw  new ResourceNotFoundException("Recurso não encontrado");
         }
     }
+
+    @Transactional
+    public void delete(Long id) {
+        try{
+            repository.deleteById(id);
+        }
+        catch (EntityNotFoundException e){
+            throw  new ResourceNotFoundException("Recurso não encontrado");
+        }
+        }
+    private void copyDtoToEntity(ClientDTO dto, Client entity) {
+        entity.setName(dto.getName());
+        entity.setCpf(dto.getCpf());
+        entity.setIncome(dto.getIncome());
+        entity.setBirthDate(dto.getBirthDate());
+        entity.setChildren(dto.getChildren());
+
+    }
 }
+
